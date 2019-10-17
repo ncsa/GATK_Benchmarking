@@ -2,7 +2,7 @@
 
 set -e
 
-module load /usr/local/apps/bioapps/modules/java/java-1.8-64bit
+module load java-1.8-64bit
 
 ####################################
 
