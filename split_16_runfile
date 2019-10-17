@@ -1,0 +1,326 @@
+#!/usr/bin/env bash
+
+set -e
+
+module load java-1.8-64bit
+module load samtools-1.5
+
+############ CONSTANTS #############
+
+CONFIG=.../TestingGATK4/gatk_configs	       
+PROPERTIES=$CONFIG/async_no_tribble.properties
+
+GATK=.../TestingGATK4/gatk-4.0.1.2/gatk
+
+PREFIX=.../NA12878_fullsize_bundle_GATK4_copy_3
+CURRENT=.../TestingGATK4/hg38_GATK4/latest_release/GATK4.0.1.2/split/split_16
+
+REF_GENOME=$PREFIX/reference_hg38/Homo_sapiens_assembly38.fasta
+
+SORTED_BAM=$PREFIX/outputs_hg38/hg38_aligned.sorted.bam
+SORTED_DEDUPPED=$CURRENT/newOutputs/hg38_aligned.sorted.dedupped.bam
+METRICS=$CURRENT/newOutputs/metrics.txt
+
+KNOWN_SITES=$PREFIX/dbsnp_hg38/dbsnp_146.hg38.vcf
+OUT_VCF=$CURRENT/newOutputs/aligned.sorted.dedupped.recal.vcf
+
+######################################
+
+GRP_1='-L chr1'
+GRP_2='-L chr2'
+GRP_3='-L chr3'
+GRP_4='-L chr4'
+GRP_5='-L chr5'
+
+GRP_6='-L chr6'
+GRP_7='-L chr7'
+GRP_8='-L chr8'
+GRP_9='-L chr9'
+GRP_10='-L chr10'
+
+GRP_11='-L chr11'
+GRP_12='-L chr12 -L chr13'
+GRP_13='-L chr14 -L chr15'
+GRP_14='-L chr16 -L chr17 -L chr18'
+GRP_15='-L chr19 -L chr20 -L chr21 -L chr22'
+
+EXCLUDE_GRP='-XL chr1 -XL chr2 -XL chr3 -XL chr4 -XL chr5 -XL chr6 -XL chr7 -XL chr8 -XL chr9 -XL chr10 -XL chr11 -XL chr12 -XL chr13 -XL chr14 -XL chr15 -XL chr16 -XL chr17 -XL chr18 -XL chr19 -XL chr20 -XL chr21 -XL chr22'
+
+NUM=1
+
+RECAL_TABLE_1=$CURRENT/newOutputs/recal_${NUM}.table
+RECAL_BAM_1=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam
+OUT_VCF_1=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf
+RUN_LOG_1=$CURRENT/runtime_${NUM}.log
+
+NUM=2
+
+RECAL_TABLE_2=$CURRENT/newOutputs/recal_${NUM}.table
+RECAL_BAM_2=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_2=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf
+RUN_LOG_2=$CURRENT/runtime_${NUM}.log
+
+NUM=3	
+
+RECAL_TABLE_3=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_3=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_3=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_3=$CURRENT/runtime_${NUM}.log
+
+NUM=4
+	
+RECAL_TABLE_4=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_4=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_4=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_4=$CURRENT/runtime_${NUM}.log
+
+NUM=5
+
+RECAL_TABLE_5=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_5=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_5=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_5=$CURRENT/runtime_${NUM}.log
+
+NUM=6	   
+
+RECAL_TABLE_6=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_6=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_6=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_6=$CURRENT/runtime_${NUM}.log
+
+NUM=7	 
+	
+RECAL_TABLE_7=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_7=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_7=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_7=$CURRENT/runtime_${NUM}.log
+
+NUM=8	   
+	
+RECAL_TABLE_8=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_8=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_8=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_8=$CURRENT/runtime_${NUM}.log
+
+NUM=9	   
+	
+RECAL_TABLE_9=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_9=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_9=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_9=$CURRENT/runtime_${NUM}.log
+
+NUM=10	       
+	
+RECAL_TABLE_10=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_10=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_10=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_10=$CURRENT/runtime_${NUM}.log
+
+NUM=11	   
+	
+RECAL_TABLE_11=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_11=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_11=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_11=$CURRENT/runtime_${NUM}.log
+
+NUM=12	       
+	
+RECAL_TABLE_12=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_12=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_12=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_12=$CURRENT/runtime_${NUM}.log
+
+NUM=13	   
+	
+RECAL_TABLE_13=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_13=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_13=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_13=$CURRENT/runtime_${NUM}.log
+
+NUM=14	       
+	
+RECAL_TABLE_14=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_14=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_14=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_14=$CURRENT/runtime_${NUM}.log
+
+NUM=15	  
+	
+RECAL_TABLE_15=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_15=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_15=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_15=$CURRENT/runtime_${NUM}.log
+
+NUM=16	   
+	
+RECAL_TABLE_16=$CURRENT/newOutputs/recal_${NUM}.table	    
+RECAL_BAM_16=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.bam	
+OUT_VCF_16=$CURRENT/newOutputs/aligned.sorted.dedupped.recal_${NUM}.vcf	  
+RUN_LOG_16=$CURRENT/runtime_${NUM}.log
+
+
+
+############# VARIABLES ################
+
+TIME_LOG=$CURRENT/timing.log
+RUN_LOG=$CURRENT/runtime.log
+
+####################################
+ 
+TOOL=MarkDuplicates 
+START=`date +%s`
+
+$GATK --java-options "-Xmx12G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL -I $SORTED_BAM \
+	-O $SORTED_DEDUPPED -M $METRICS &>> $RUN_LOG
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################	    
+samtools index $SORTED_DEDUPPED
+####################################
+
+TOOL=BaseRecalibrator 
+START=`date +%s`
+
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_1 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_1 -R $REF_GENOME &>> $RUN_LOG_1 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_2 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_2 -R $REF_GENOME &>> $RUN_LOG_2 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_3 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_3 -R $REF_GENOME &>> $RUN_LOG_3 &    
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_4 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_4 -R $REF_GENOME &>> $RUN_LOG_4 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_5 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_5 -R $REF_GENOME &>> $RUN_LOG_5 & 
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_6 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_6 -R $REF_GENOME &>> $RUN_LOG_6 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_7 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_7 -R $REF_GENOME &>> $RUN_LOG_7 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_8 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_8 -R $REF_GENOME &>> $RUN_LOG_8 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_9 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_9 -R $REF_GENOME &>> $RUN_LOG_9 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_10 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_10 -R $REF_GENOME &>> $RUN_LOG_10 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_11 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_11 -R $REF_GENOME &>> $RUN_LOG_11 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_12 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_12 -R $REF_GENOME &>> $RUN_LOG_12 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_13 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_13 -R $REF_GENOME &>> $RUN_LOG_13 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_14 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_14 -R $REF_GENOME &>> $RUN_LOG_14 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $GRP_15 --gatk-config-file \
+	$PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_15 -R $REF_GENOME &>> $RUN_LOG_15 &
+$GATK --java-options "-Xmx3G -XX:+UseParallelGC -XX:ParallelGCThreads=2" $TOOL $EXCLUDE_GRP \
+	--gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE_16 \
+	-R $REF_GENOME &>> $RUN_LOG_16 &
+wait
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG 
+
+####################################
+
+TOOL=ApplyBQSR
+START=`date +%s`
+
+$GATK --java-options "-Xmx3G" $TOOL $GRP_1 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_1 -O $RECAL_BAM_1 &>> $RUN_LOG_1 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_2 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_2 -O $RECAL_BAM_2 &>> $RUN_LOG_2 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_3 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_3 -O $RECAL_BAM_3 &>> $RUN_LOG_3 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_4 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_4 -O $RECAL_BAM_4 &>> $RUN_LOG_4 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_5 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_5 -O $RECAL_BAM_5 &>> $RUN_LOG_5 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_6 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_6 -O $RECAL_BAM_6 &>> $RUN_LOG_6 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_7 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_7 -O $RECAL_BAM_7 &>> $RUN_LOG_7 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_8 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_8 -O $RECAL_BAM_8 &>> $RUN_LOG_8 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_9 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_9 -O $RECAL_BAM_9 &>> $RUN_LOG_9 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_10 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_10 -O $RECAL_BAM_10 &>> $RUN_LOG_10 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_11 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_11 -O $RECAL_BAM_11 &>> $RUN_LOG_11 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_12 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_12 -O $RECAL_BAM_12 &>> $RUN_LOG_12 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_13 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_13 -O $RECAL_BAM_13 &>> $RUN_LOG_13 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_14 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_14 -O $RECAL_BAM_14 &>> $RUN_LOG_14 &
+$GATK --java-options "-Xmx3G" $TOOL $GRP_15 --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_15 -O $RECAL_BAM_15 &>> $RUN_LOG_15 &
+$GATK --java-options "-Xmx3G" $TOOL $EXCLUDE_GRP --gatk-config-file $PROPERTIES -I $SORTED_DEDUPPED \
+	-bqsr $RECAL_TABLE_16 -O $RECAL_BAM_16 &>> $RUN_LOG_16 &
+wait
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG 
+
+#################################### 
+
+TOOL=HaplotypeCaller
+START=`date +%s`
+
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_1 -O $OUT_VCF_1 -R $REF_GENOME &>> $RUN_LOG_1 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_2 -O $OUT_VCF_2 -R $REF_GENOME &>> $RUN_LOG_2 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_3 -O $OUT_VCF_3 -R $REF_GENOME &>> $RUN_LOG_3 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_4 -O $OUT_VCF_4 -R $REF_GENOME &>> $RUN_LOG_4 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_5 -O $OUT_VCF_5 -R $REF_GENOME &>> $RUN_LOG_5 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_6 -O $OUT_VCF_6 -R $REF_GENOME &>> $RUN_LOG_6 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_7 -O $OUT_VCF_7 -R $REF_GENOME &>> $RUN_LOG_7 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_8 -O $OUT_VCF_8 -R $REF_GENOME &>> $RUN_LOG_8 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_9 -O $OUT_VCF_9 -R $REF_GENOME &>> $RUN_LOG_9 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_10 -O $OUT_VCF_10 -R $REF_GENOME &>> $RUN_LOG_10 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_11 -O $OUT_VCF_11 -R $REF_GENOME &>> $RUN_LOG_11 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_12 -O $OUT_VCF_12 -R $REF_GENOME &>> $RUN_LOG_12 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_13 -O $OUT_VCF_13 -R $REF_GENOME &>> $RUN_LOG_13 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_14 -O $OUT_VCF_14 -R $REF_GENOME &>> $RUN_LOG_14 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_15 -O $OUT_VCF_15 -R $REF_GENOME &>> $RUN_LOG_15 &
+$GATK --java-options "-Xmx3G" $TOOL --pairHMM AVX_LOGLESS_CACHING_OMP --native-pair-hmm-threads 2 \
+	-I $RECAL_BAM_16 -O $OUT_VCF_16 -R $REF_GENOME &>> $RUN_LOG_16 &
+wait
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################
+
+TOOL=MergeVcfs	
+START=`date +%s`	
+	
+$GATK --java-options "-Xmx12G" $TOOL -I $OUT_VCF_1 -I $OUT_VCF_2 -I $OUT_VCF_3 \
+	-I $OUT_VCF_4 -I $OUT_VCF_5 -I $OUT_VCF_6 -I $OUT_VCF_7 -I $OUT_VCF_8 -I $OUT_VCF_9 -I $OUT_VCF_10 \
+	-I $OUT_VCF_11 -I $OUT_VCF_12 -I $OUT_VCF_13 -I $OUT_VCF_14 -I $OUT_VCF_15 -I $OUT_VCF_16 \
+	-O $OUT_VCF --COMPRESSION_LEVEL 1 &>> $RUN_LOG
+
+END=`date +%s`	  
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################
