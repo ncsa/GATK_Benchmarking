@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+set -e
+
+# https://github.com/broadinstitute/gatk/issues/4361 inspired this run
+
+module load /usr/local/apps/bioapps/modules/java/java-1.8-64bit
+
+############ CONSTANTS #############
+
+GATK=/projects/bioinformatics/TestingGATK4/gatk-4.0.1.2/gatk
+
+PREFIX=/projects/bioinformatics/DataPacks/human/NA12878_fullsize_bundle_GATK4
+CURRENT=/projects/bioinformatics/TestingGATK4/hg38_GATK4/latest_release/GATK4.0.1.2/baseline
+
+REF_GENOME=$PREFIX/reference_hg38/Homo_sapiens_assembly38.fasta
+
+SORTED_BAM=$PREFIX/outputs_hg38/hg38_aligned.sorted.bam
+SORTED_DEDUPPED=$CURRENT/newOutputs/hg38_aligned.sorted.dedupped.bam
+METRICS=$CURRENT/newOutputs/metrics.txt
+KNOWN_SITES=$PREFIX/dbsnp_hg38/dbsnp_146.hg38.vcf
+RECAL_TABLE=$CURRENT/newOutputs/recal.table
+RECAL_BAM=$CURRENT/newOutputs/aligned.sorted.dedupped.recal.bam
+OUT_VCF=$CURRENT/newOutputs/aligned.sorted.dedupped.recal.vcf
+
+############# VARIABLES ################
+
+TIME_LOG=$CURRENT/timing.log
+RUN_LOG=$CURRENT/runtime.log
+
+####################################
+ 
+TOOL=MarkDuplicates 
+START=`date +%s`
+
+$GATK --java-options "-Xmx12G" $TOOL -I $SORTED_BAM -O $SORTED_DEDUPPED -M $METRICS &>> $RUN_LOG 
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################
+
+TOOL=BaseRecalibrator 
+START=`date +%s`
+
+$GATK --java-options "-Xmx12G" $TOOL -I $SORTED_DEDUPPED --known-sites $KNOWN_SITES -O $RECAL_TABLE -R $REF_GENOME &>> $RUN_LOG
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG 
+
+####################################
+
+TOOL=ApplyBQSR
+START=`date +%s`
+
+$GATK --java-options "-Xmx12G" $TOOL -I $SORTED_DEDUPPED -bqsr $RECAL_TABLE -O $RECAL_BAM &>> $RUN_LOG 
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG 
+
+#################################### 
+
+TOOL=HaplotypeCaller
+START=`date +%s`
+
+$GATK --java-options "-Xmx12G" $TOOL --pairHMM AVX_LOGLESS_CACHING -I $RECAL_BAM -O $OUT_VCF -R $REF_GENOME &>> $RUN_LOG 
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################
