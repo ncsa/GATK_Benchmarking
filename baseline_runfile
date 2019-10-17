@@ -4,14 +4,14 @@ set -e
 
 # https://github.com/broadinstitute/gatk/issues/4361 inspired this run
 
-module load /usr/local/apps/bioapps/modules/java/java-1.8-64bit
+module load java-1.8-64bit
 
 ############ CONSTANTS #############
 
-GATK=/projects/bioinformatics/TestingGATK4/gatk-4.0.1.2/gatk
+GATK=.../TestingGATK4/gatk-4.0.1.2/gatk
 
-PREFIX=/projects/bioinformatics/DataPacks/human/NA12878_fullsize_bundle_GATK4
-CURRENT=/projects/bioinformatics/TestingGATK4/hg38_GATK4/latest_release/GATK4.0.1.2/baseline
+PREFIX=.../NA12878_fullsize_bundle_GATK4
+CURRENT=.../TestingGATK4/hg38_GATK4/latest_release/GATK4.0.1.2/baseline
 
 REF_GENOME=$PREFIX/reference_hg38/Homo_sapiens_assembly38.fasta
 
