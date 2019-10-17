@@ -1,0 +1,83 @@
+#!/usr/bin/env bash 
+
+set -e
+
+module load java-1.8-64bit 
+module load samtools-1.5
+
+############ CONSTANTS #############
+
+PICARD_JAR=.../picard-2.17.4.jar
+GATK_JAR=.../GenomeAnalysisTK-3.8-0-ge9d806836/GenomeAnalysisTK.jar
+
+PREFIX=.../NA12878_fullsize_bundle_GATK3.8
+CURRENT=.../TestingGATK4/GATK3.8_test/GATK3.8_optimal
+
+REF_GENOME=$PREFIX/reference_hg38/Homo_sapiens_assembly38.fasta
+
+SORTED_BAM=$PREFIX/outputs_hg38/hg38_aligned.sorted.bam
+SORTED_DEDUPPED=$CURRENT/newOutputs/aligned.sorted.dedupped.bam 
+METRICS=$CURRENT/newOutputs/metrics.txt 
+KNOWN_SITES=$PREFIX/dbsnp_hg38/dbsnp_146.hg38.vcf
+RECAL_TABLE=$CURRENT/newOutputs/recal.table 
+RECAL_BAM=$CURRENT/newOutputs/aligned.sorted.dedupped.recal.bam 
+OUT_VCF=$CURRENT/newOutputs/aligned.sorted.dedupped.recal.vcf 
+
+############# VARIABLES ################
+
+TIME_LOG=$CURRENT/timing.log
+RUN_LOG=$CURRENT/runtime.log
+
+####################################
+ 
+TOOL=MarkDuplicates 
+START=`date +%s`
+
+java -Xmx12G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar $PICARD_JAR $TOOL \
+	INPUT=${SORTED_BAM} OUTPUT=${SORTED_DEDUPPED} METRICS_FILE=${METRICS} &>> $RUN_LOG 
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################
+samtools index -@ 10 $SORTED_DEDUPPED
+####################################
+
+TOOL=BaseRecalibrator 
+START=`date +%s`
+
+java -Xmx12G -XX:+UseParallelGC -XX:ParallelGCThreads=24 -jar $GATK_JAR -T $TOOL \
+	-I $SORTED_DEDUPPED -knownSites $KNOWN_SITES -nct 24 --out $RECAL_TABLE -R $REF_GENOME &>> $RUN_LOG
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG 
+
+####################################
+
+TOOL=PrintReads
+START=`date +%s`
+
+java -Xmx12G -jar $GATK_JAR -T $TOOL -R $REF_GENOME -I $SORTED_DEDUPPED \
+	-BQSR $RECAL_TABLE -nct 3 --out $RECAL_BAM &>> $RUN_LOG
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG 
+
+#################################### 
+samtools index -@ 10 $RECAL_BAM                                                                                    
+####################################
+
+TOOL=HaplotypeCaller
+START=`date +%s`
+
+java -Xmx12G -jar $GATK_JAR -T $TOOL -R $REF_GENOME -I $RECAL_BAM \
+	--dbsnp $KNOWN_SITES -o $OUT_VCF -nt 1 -nct 23 >> $RUN_LOG
+
+END=`date +%s`
+
+echo $TOOL ran for $((END - START)) seconds >> $TIME_LOG
+
+####################################
